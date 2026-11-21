@@ -71,6 +71,8 @@ data class Trip(
     val budget: Double = 0.0,
     /** Cuántas unidades de la moneda base vale 1 yen. */
     val rate: Double = 0.0,
+    /** Fecha (ISO) en que la cotización se bajó de internet; vacío si es manual. */
+    val rateDate: String = "",
     val countBookings: Boolean = true,
     val travelers: List<Traveler> = listOf(Traveler(name = "Yo")),
     val flights: List<Flight> = emptyList(),

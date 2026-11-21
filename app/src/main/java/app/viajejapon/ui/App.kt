@@ -52,6 +52,7 @@ fun App(vm: TripViewModel = viewModel()) {
         SettingsScreen(
             trip = trip,
             onSave = { updated -> vm.update { updated }; settings = false },
+            onImport = { imported -> vm.update { imported }; settings = false },
             onBack = { settings = false },
         )
     } else {

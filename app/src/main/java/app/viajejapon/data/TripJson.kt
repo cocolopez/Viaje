@@ -21,6 +21,7 @@ fun Trip.toJson(): JSONObject = JSONObject().apply {
     put("base", baseCurrency)
     put("budget", budget)
     put("rate", rate)
+    put("rateDate", rateDate)
     put("countBookings", countBookings)
     put("travelers", JSONArray().also { a ->
         travelers.forEach { a.put(JSONObject().put("id", it.id).put("name", it.name)) }
@@ -77,6 +78,7 @@ fun tripFromJson(o: JSONObject): Trip = Trip(
     baseCurrency = o.optString("base", "USD"),
     budget = o.optDouble("budget", 0.0),
     rate = o.optDouble("rate", 0.0),
+    rateDate = o.optString("rateDate", ""),
     countBookings = o.optBoolean("countBookings", true),
     travelers = o.optJSONArray("travelers")
         .mapObjects { Traveler(it.getString("id"), it.optString("name", "")) }
