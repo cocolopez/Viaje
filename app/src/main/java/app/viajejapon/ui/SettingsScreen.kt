@@ -95,6 +95,21 @@ fun SettingsScreen(trip: Trip, onSave: (Trip) -> Unit, onImport: (Trip) -> Unit,
         }
     }
 
+    val htmlLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("text/html"),
+    ) { uri ->
+        if (uri != null) {
+            val ok = runCatching {
+                val tpl = ctx.assets.open("viewer.html").bufferedReader(Charsets.UTF_8).use { it.readText() }
+                val html = tpl
+                    .replace("__TRIP_JSON__", trip.toJson().toString().replace("</", "<\\/"))
+                    .replace("__EXPORT_DATE__", LocalDate.now().toString())
+                ctx.contentResolver.openOutputStream(uri, "wt")!!.use { it.write(html.toByteArray(Charsets.UTF_8)) }
+            }.isSuccess
+            backupStatus = if (ok) "Página HTML guardada. Se abre en cualquier navegador." else "No se pudo guardar el HTML."
+        }
+    }
+
     Column(
         Modifier
             .fillMaxSize()
@@ -209,6 +224,14 @@ fun SettingsScreen(trip: Trip, onSave: (Trip) -> Unit, onImport: (Trip) -> Unit,
                     OutlinedButton(onClick = { exportLauncher.launch("viaje-japon-backup.json") }) { Text("Exportar") }
                     OutlinedButton(onClick = { importLauncher.launch(arrayOf("*/*")) }) { Text("Importar") }
                 }
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    "También podés generar una página web de solo lectura con todo el viaje (pestañas, itinerario y presupuesto) para compartirla: nadie puede modificarla.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Nezu,
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedButton(onClick = { htmlLauncher.launch("viajapon.html") }) { Text("Exportar HTML (solo lectura)") }
                 if (backupStatus.isNotBlank()) {
                     Text(backupStatus, style = MaterialTheme.typography.bodySmall, color = Ai, modifier = Modifier.padding(top = 6.dp))
                 }

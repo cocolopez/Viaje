@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Viajapon</title>
+<style>
+:root{--washi:#F3ECDD;--paper:#FBF8F0;--sumi:#1F1B17;--shu:#C63A2B;--shusoft:#F2D9D2;--ai:#2B4666;--matcha:#7A8B52;--kin:#C79A33;--nezu:#857B6F;--line:#DCD2BE}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#E4DCCB}
+body{font-family:"Noto Serif JP","Hiragino Mincho ProN","Yu Mincho","Noto Serif CJK JP",Georgia,serif;color:var(--sumi)}
+.app{position:relative;max-width:520px;height:100vh;height:100dvh;margin:0 auto;background:var(--washi);display:flex;flex-direction:column;box-shadow:0 0 30px rgba(0,0,0,.12);overflow:hidden}
+.pager{flex:1;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
+.pager::-webkit-scrollbar{display:none}
+.slide{position:relative;flex:0 0 100%;height:100%;scroll-snap-align:start;scroll-snap-stop:always;background:radial-gradient(circle at 95% 0,rgba(31,27,23,.08),transparent 75%)}
+.slide.home{background:none}
+canvas.art{position:absolute;left:0;bottom:0;width:100%;height:300px;pointer-events:none}
+.scroll{position:absolute;inset:0;overflow-y:auto;padding:0 16px 110px}
+.stack{display:flex;flex-direction:column;gap:12px}
+nav{display:flex;background:var(--paper);border-top:1px solid var(--line);padding:6px 0 max(8px,env(safe-area-inset-bottom))}
+nav button{flex:1;border:0;background:none;font:inherit;color:var(--nezu);display:flex;flex-direction:column;align-items:center;gap:2px;padding:0;cursor:pointer}
+nav .k{font-size:20px;font-weight:700;padding:3px 18px;border-radius:14px}
+nav .l{font-size:11px}
+nav button.on{color:var(--shu)}
+nav button.on .k{background:var(--shusoft)}
+.hanko{display:inline-grid;place-items:center;background:var(--shu);color:var(--paper);border-radius:6px;transform:rotate(-3deg);font-weight:700;flex:none}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:16px}
+.card.click{cursor:pointer}
+.row{display:flex;align-items:center}
+.between{justify-content:space-between}
+.grow{flex:1;min-width:0}
+.muted{color:var(--nezu)}
+.small{font-size:12px}
+.b{font-weight:700}
+.title{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px}
+.head{padding:calc(16px + env(safe-area-inset-top)) 0 4px}
+.head h1{margin:0;font-size:24px}
+.head .sub{font-size:12px;color:var(--nezu)}
+canvas.brush{display:block;margin-top:8px}
+.empty{color:var(--nezu);text-align:center;white-space:pre-line}
+.dashed{border-top:1.5px dashed var(--line);margin:10px 0}
+.code{font-size:26px;font-weight:700}
+.arrow{color:var(--shu);font-size:24px;padding:0 10px}
+.red{color:var(--shu)}.ai{color:var(--ai)}
+.hero{position:relative;height:250px;margin:0 -16px}
+.hero canvas{position:absolute;inset:0;width:100%;height:100%}
+.hero .fade{position:absolute;inset:0;background:linear-gradient(transparent,var(--washi))}
+.hero .sun{position:absolute;right:16px;top:calc(52px + env(safe-area-inset-top));width:112px;height:112px}
+.hero .sun canvas{position:absolute;inset:0}
+.hero .sun div{position:absolute;left:17px;top:17px;width:78px;height:78px;border-radius:50%;background:var(--shu);color:var(--paper);display:grid;place-items:center;font-size:36px;font-weight:700}
+.hero .txt{position:absolute;left:20px;bottom:16px}
+.pill{position:absolute;left:16px;top:calc(14px + env(safe-area-inset-top));font-size:12px;color:var(--ai);border:1px solid var(--ai);border-radius:20px;padding:3px 10px;background:rgba(251,248,240,.7)}
+.wm{font-size:30px;font-weight:700;display:inline-flex;align-items:center;color:var(--sumi);line-height:1}
+.wm .pn{color:var(--ai)}
+.wm .o{width:27px;height:27px;border-radius:50%;background:var(--shu);color:var(--paper);display:inline-grid;place-items:center;font-size:15px;margin:0 1px}
+.big{font-size:40px;font-weight:700;line-height:1.1}
+.counters{display:flex;gap:8px}
+.counters .card{flex:1;padding:10px;text-align:center}
+.counters .card .n{font-size:20px;font-weight:700}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;touch-action:pan-x;scrollbar-width:none}
+.chip{flex:none;text-align:center;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:8px 14px;font-size:13px;cursor:pointer;line-height:1.3}
+.chip.on{background:var(--shu);border-color:var(--shu);color:var(--paper)}
+.chip .dot{font-size:10px;color:var(--matcha)}
+.chip.on .dot{color:var(--paper)}
+.place{display:flex;gap:10px;align-items:flex-start}
+.chk{width:20px;height:20px;border:2px solid var(--nezu);border-radius:3px;flex:none;margin-top:3px;display:grid;place-items:center;font-size:14px;line-height:1}
+.chk.done{background:var(--matcha);border-color:var(--matcha);color:#fff}
+.done-t{text-decoration:line-through;color:var(--nezu)}
+a.maps{color:var(--ai);font-weight:700;text-decoration:none;font-size:13px;white-space:nowrap}
+.sum{display:flex;justify-content:space-between;gap:10px;padding:3px 0}.sum b{white-space:nowrap}
+.cat{display:flex;align-items:center;gap:10px;padding:4px 0}
+.dayh{font-size:13px;color:var(--nezu);margin-top:4px}
+.foot{text-align:center;color:var(--nezu);font-size:11px;margin-top:6px}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="pager" id="pager"></div>
+  <nav id="nav"></nav>
+</div>
+<script>
+const TRIP = __TRIP_JSON__;
+const EXPORTED = "__EXPORT_DATE__";
+const T = TRIP;
+const BASE = (T.base || 'USD');
+
+// ---------- utilidades ----------
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const nf = new Intl.NumberFormat('es-AR', {maximumFractionDigits: 0});
+const num = v => nf.format(Math.round(v));
+const bm = v => BASE + ' ' + num(v);
+const money = (v, cur) => cur === 'JPY' ? '¥' + num(v) : bm(v);
+const toBase = (a, cur) => cur === 'JPY' ? a * (T.rate || 0) : a;
+const pd = s => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ''); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null; };
+const clean = s => s.replace(/,/g, '').replace(/\./g, '');
+const fd = s => { const d = pd(s); return d ? clean(d.toLocaleDateString('es-AR', {weekday:'short', day:'numeric', month:'short', year:'numeric'})) : '—'; };
+const fshort = d => clean(d.toLocaleDateString('es-AR', {day:'numeric', month:'short'}));
+const fwd = d => clean(d.toLocaleDateString('es-AR', {weekday:'short'}));
+const iso = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const dayDiff = (a, b) => Math.round((Date.UTC(b.getFullYear(), b.getMonth(), b.getDate()) - Date.UTC(a.getFullYear(), a.getMonth(), a.getDate())) / 864e5);
+const CATS = {comida:['食','Comida'], transporte:['電','Transporte'], alojamiento:['宿','Alojamiento'], actividades:['遊','Actividades'], compras:['買','Compras'], otros:['他','Otros']};
+const cat = k => CATS[k] || CATS.otros;
+const nameOf = id => { const t = T.travelers.find(x => x.id === id); return t ? (t.name || 'Viajero') : '—'; };
+
+// ---------- cálculos (igual que la app) ----------
+const sumExp = () => T.expenses.reduce((s, e) => s + toBase(e.amount, e.cur), 0);
+const sumBook = () => T.flights.reduce((s, f) => s + toBase(f.cost, f.cur), 0) + T.stays.reduce((s, f) => s + toBase(f.cost, f.cur), 0);
+const spent = () => sumExp() + (T.countBookings ? sumBook() : 0);
+const yenNoRate = () => (T.rate || 0) <= 0 && (T.expenses.some(e => e.cur === 'JPY' && e.amount > 0) || T.flights.some(f => f.cur === 'JPY' && f.cost > 0) || T.stays.some(f => f.cur === 'JPY' && f.cost > 0));
+function balances() {
+  const ids = T.travelers.map(t => t.id), net = {};
+  ids.forEach(i => net[i] = 0);
+  T.expenses.forEach(e => {
+    const amt = toBase(e.amount, e.cur);
+    let part = (e.split || []).filter(i => i in net);
+    if (!part.length) part = ids;
+    if (e.paidBy in net) net[e.paidBy] += amt;
+    part.forEach(i => net[i] -= amt / part.length);
+  });
+  return net;
+}
+function settle(net) {
+  const deb = Object.entries(net).filter(([, v]) => v < -.5).map(([k, v]) => [k, -v]).sort((a, b) => b[1] - a[1]);
+  const cre = Object.entries(net).filter(([, v]) => v > .5).sort((a, b) => b[1] - a[1]);
+  const out = []; let i = 0, j = 0;
+  while (i < deb.length && j < cre.length) {
+    const p = Math.min(deb[i][1], cre[j][1]);
+    out.push([deb[i][0], cre[j][0], p]);
+    deb[i][1] -= p; cre[j][1] -= p;
+    if (deb[i][1] < .5) i++;
+    if (cre[j][1] < .5) j++;
+  }
+  return out;
+}
+
+// ---------- tinta (canvas) ----------
+function rng(seed) { let a = (seed * 2654435761) >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function circ(c, x, y, r, col) { c.beginPath(); c.arc(x, y, r, 0, 7); c.fillStyle = col; c.fill(); }
+function line(c, x1, y1, x2, y2, col, lw) { c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.strokeStyle = col; c.lineWidth = lw; c.lineCap = 'butt'; c.stroke(); }
+function withAlpha(col, k) { const m = /rgba?\(([^)]+)\)/.exec(col); if (!m) return col; const p = m[1].split(',').map(Number); const a = p.length > 3 ? p[3] : 1; return 'rgba(' + p[0] + ',' + p[1] + ',' + p[2] + ',' + a * k + ')'; }
+function ink(c, col, left, top, w, h, seed, st, en, dry) {
+  const r = rng(seed), n = 36, tp = [], bt = [];
+  for (let i = 0; i <= n; i++) {
+    const t = i / n; let th = st + (en - st) * t; th *= .9 + .2 * r();
+    if (t < .04) th *= .55 + t * 10;
+    const half = h * th / 2, cy = h / 2 + (r() - .5) * h * .10;
+    tp.push([left + w * t, top + cy - half]); bt.push([left + w * t, top + cy + half]);
+  }
+  c.beginPath(); c.moveTo(tp[0][0], tp[0][1]); tp.forEach(p => c.lineTo(p[0], p[1])); bt.reverse().forEach(p => c.lineTo(p[0], p[1])); c.closePath(); c.fillStyle = col; c.fill();
+  if (dry) { const r2 = rng(seed + 99); for (let k = 0; k < 3; k++) { const y = top + h * (.3 + .4 * r2()), x0 = left + w * (.55 + .2 * r2()), x1 = left + w * (.95 + .1 * r2()); line(c, x0, y, x1, y, withAlpha(col, .45), Math.max(1, h * .06)); } }
+}
+function enso(c, cx, cy, rad, th, seed) {
+  const r = rng(seed), n = 64, o = [], inn = [];
+  for (let i = 0; i <= n; i++) {
+    const t = i / n, a = (-50 + 320 * t) * Math.PI / 180, tt = th * (1 - .8 * t) * (.9 + .2 * r()), rr = rad + (r() - .5) * th * .2;
+    o.push([cx + (rr + tt / 2) * Math.cos(a), cy + (rr + tt / 2) * Math.sin(a)]);
+    inn.push([cx + (rr - tt / 2) * Math.cos(a), cy + (rr - tt / 2) * Math.sin(a)]);
+  }
+  c.beginPath(); c.moveTo(o[0][0], o[0][1]); o.forEach(p => c.lineTo(p[0], p[1])); inn.reverse().forEach(p => c.lineTo(p[0], p[1])); c.closePath(); c.fillStyle = 'rgba(31,27,23,.85)'; c.fill();
+}
+function mountains(c, w, h) {
+  c.beginPath(); c.moveTo(0, h * .80);
+  [[.12,.64],[.26,.74],[.40,.58],[.58,.72],[.78,.62],[1,.74]].forEach(p => c.lineTo(w * p[0], h * p[1]));
+  c.lineTo(w, h); c.lineTo(0, h); c.closePath(); c.fillStyle = 'rgba(31,27,23,.07)'; c.fill();
+  c.beginPath(); c.moveTo(w * .18, h * .88); c.bezierCurveTo(w * .34, h * .80, w * .46, h * .60, w * .52, h * .40); c.lineTo(w * .57, h * .40); c.bezierCurveTo(w * .62, h * .60, w * .78, h * .80, w * .96, h * .88); c.closePath(); c.fillStyle = 'rgba(31,27,23,.16)'; c.fill();
+  c.beginPath();
+  [[.495,.49],[.52,.40],[.57,.40],[.595,.49],[.565,.465],[.545,.505],[.525,.465]].forEach((p, i) => i ? c.lineTo(w * p[0], h * p[1]) : c.moveTo(w * p[0], h * p[1]));
+  c.closePath(); c.fillStyle = 'rgba(243,236,221,.92)'; c.fill();
+  c.beginPath(); c.moveTo(0, h * .90); c.bezierCurveTo(w * .20, h * .82, w * .35, h * .95, w * .55, h * .88); c.bezierCurveTo(w * .75, h * .81, w * .88, h * .92, w, h * .86); c.lineTo(w, h); c.lineTo(0, h); c.closePath(); c.fillStyle = 'rgba(31,27,23,.10)'; c.fill();
+  ink(c, 'rgba(31,27,23,.30)', w * .04, h * .865, w * .55, h * .025, 11, .4, 1, true);
+}
+function bird(c, x, y, s) { c.beginPath(); c.moveTo(x - s, y); c.bezierCurveTo(x - s * .5, y - s * .6, x - s * .1, y - s * .5, x, y); c.bezierCurveTo(x + s * .1, y - s * .5, x + s * .5, y - s * .6, x + s, y); c.strokeStyle = 'rgba(31,27,23,.45)'; c.lineWidth = 2.5; c.lineCap = 'round'; c.lineJoin = 'round'; c.stroke(); }
+function drawBirds(c, w, h) {
+  circ(c, w * .72, h * .42, h * .20, 'rgba(198,58,43,.14)');
+  ink(c, 'rgba(31,27,23,.09)', w * .40, h * .55, w * .55, 26, 31, .6, 1, false);
+  ink(c, 'rgba(31,27,23,.07)', w * .05, h * .70, w * .50, 22, 32, .6, 1, false);
+  ink(c, 'rgba(31,27,23,.08)', w * .30, h * .84, w * .60, 20, 33, .6, 1, false);
+  c.beginPath(); c.moveTo(w * .08, h * .88); c.bezierCurveTo(w * .30, h * .55, w * .55, h * .82, w * .88, h * .30);
+  c.setLineDash([14, 12]); c.strokeStyle = 'rgba(198,58,43,.5)'; c.lineWidth = 2.5; c.lineCap = 'round'; c.stroke(); c.setLineDash([]);
+  const px = w * .88, py = h * .30;
+  c.save(); c.translate(px, py); c.rotate(-48 * Math.PI / 180); c.translate(-px, -py);
+  c.beginPath(); c.moveTo(px + 20, py); c.lineTo(px - 14, py - 11); c.lineTo(px - 6, py); c.lineTo(px - 14, py + 11); c.closePath(); c.fillStyle = 'rgba(31,27,23,.60)'; c.fill(); c.restore();
+  bird(c, w * .22, h * .30, 16); bird(c, w * .34, h * .20, 11); bird(c, w * .12, h * .16, 9);
+}
+function drawHouse(c, w, h) {
+  const cx = w * .46, base = h * .93, hw = w * .62;
+  circ(c, w * .82, h * .25, h * .15, 'rgba(199,154,51,.20)');
+  const bodyH = h * .20, bodyTop = base - bodyH, left = cx - hw * .40, bodyW = hw * .80;
+  c.fillStyle = 'rgba(31,27,23,.12)'; c.fillRect(left, bodyTop, bodyW, bodyH);
+  for (let i = 0; i <= 5; i++) { const x = left + bodyW * i / 5; line(c, x, bodyTop, x, base, 'rgba(31,27,23,.22)', 1.5); }
+  line(c, left, bodyTop + bodyH * .5, left + bodyW, bodyTop + bodyH * .5, 'rgba(31,27,23,.22)', 1.5);
+  line(c, left, bodyTop + bodyH * .2, left + bodyW, bodyTop + bodyH * .2, 'rgba(31,27,23,.22)', 1.5);
+  const rh = h * .26, yE = bodyTop + 4, yR = yE - rh;
+  c.beginPath(); c.moveTo(cx - hw * .60, yE - 6); c.bezierCurveTo(cx - hw * .45, yE + 5, cx - hw * .35, yE + 3, cx - hw * .30, yE); c.lineTo(cx + hw * .30, yE);
+  c.bezierCurveTo(cx + hw * .35, yE + 3, cx + hw * .45, yE + 5, cx + hw * .60, yE - 6); c.bezierCurveTo(cx + hw * .40, yE - rh * .25, cx + hw * .28, yR + rh * .1, cx + hw * .20, yR); c.lineTo(cx - hw * .20, yR);
+  c.bezierCurveTo(cx - hw * .28, yR + rh * .1, cx - hw * .40, yE - rh * .25, cx - hw * .60, yE - 6); c.closePath(); c.fillStyle = 'rgba(31,27,23,.30)'; c.fill();
+  const lx = cx - hw * .34; line(c, lx, yE, lx, yE + 22, 'rgba(31,27,23,.4)', 1.5);
+  c.beginPath(); c.ellipse(lx, yE + 35, 9, 13, 0, 0, 7); c.fillStyle = 'rgba(198,58,43,.75)'; c.fill();
+  c.fillStyle = 'rgba(31,27,23,.45)'; c.fillRect(lx - 5, yE + 20, 10, 3); c.fillRect(lx - 5, yE + 46, 10, 3);
+  [[w * .88, .62], [w * .94, .50]].forEach(([bx, bh]) => {
+    line(c, bx, base, bx, base - h * bh, 'rgba(122,139,82,.45)', 5);
+    let yy = base - h * .10; while (yy > base - h * bh) { line(c, bx - 4, yy, bx + 4, yy, 'rgba(31,27,23,.30)', 1.5); yy -= h * .10; }
+    const ty = base - h * bh + 30;
+    c.save(); c.translate(bx, ty); c.rotate(-28 * Math.PI / 180); c.translate(-bx, -ty); ink(c, 'rgba(122,139,82,.45)', bx, ty, 44, 7, 51, 1, .2, true); c.restore();
+    c.save(); c.translate(bx, ty + 16); c.rotate(200 * Math.PI / 180); c.translate(-bx, -(ty + 16)); ink(c, 'rgba(122,139,82,.40)', bx, ty + 16, 40, 6, 52, 1, .2, true); c.restore();
+  });
+  ink(c, 'rgba(31,27,23,.30)', w * .04, base - 3, w * .92, 8, 23, .4, 1, true);
+}
+function drawTorii(c, w, h) {
+  const cx = w * .5, base = h * .93, gw = w * .50, gh = h * .62, yT = base - gh, pw = gw * .075, red = 'rgba(198,58,43,.60)';
+  circ(c, cx + gw * .55, yT - h * .02, h * .16, 'rgba(199,154,51,.22)');
+  [-1, 1].forEach(s => { const px = cx + s * gw * .36; c.fillStyle = red; c.fillRect(px - pw / 2, yT + gh * .05, pw, gh * .95); c.fillStyle = 'rgba(31,27,23,.35)'; c.fillRect(px - pw * .6, base - gh * .05, pw * 1.2, gh * .05); });
+  c.fillStyle = red; c.fillRect(cx - gw * .42, yT + gh * .22, gw * .84, gh * .045);
+  c.fillStyle = 'rgba(198,58,43,.5)'; c.fillRect(cx - pw * .4, yT + gh * .075, pw * .8, gh * .145);
+  c.fillStyle = 'rgba(31,27,23,.45)'; c.fillRect(cx - gw * .5, yT + gh * .075, gw, gh * .03);
+  c.beginPath(); c.moveTo(cx - gw * .58, yT - gh * .06); c.bezierCurveTo(cx - gw * .30, yT + gh * .035, cx + gw * .30, yT + gh * .035, cx + gw * .58, yT - gh * .06);
+  c.lineTo(cx + gw * .53, yT + gh * .045); c.bezierCurveTo(cx + gw * .30, yT + gh * .095, cx - gw * .30, yT + gh * .095, cx - gw * .53, yT + gh * .045); c.closePath(); c.fillStyle = 'rgba(198,58,43,.70)'; c.fill();
+  for (let i = 0; i <= 4; i++) { const y = base - i * gh * .035, half = gw * (.34 - i * .025); line(c, cx - half, y, cx + half, y, 'rgba(31,27,23,.20)', 2); }
+  ink(c, 'rgba(243,236,221,.85)', w * .1, base - gh * .12, w * .8, 16, 42, .6, 1, false);
+  ink(c, 'rgba(31,27,23,.30)', w * .04, base - 3, w * .92, 8, 24, .4, 1, true);
+}
+function coin(c, x, y, r) {
+  circ(c, x, y, r, 'rgba(199,154,51,.50)'); c.beginPath(); c.arc(x, y, r, 0, 7); c.strokeStyle = 'rgba(31,27,23,.35)'; c.lineWidth = 1.5; c.stroke();
+  const s = r * .56; c.fillStyle = '#F3ECDD'; c.fillRect(x - s / 2, y - s / 2, s, s); c.strokeRect(x - s / 2, y - s / 2, s, s);
+}
+function drawWaves(c, w, h) {
+  circ(c, w * .5, h * .62, h * .20, 'rgba(198,58,43,.13)');
+  coin(c, w * .26, h * .36, 30); coin(c, w * .50, h * .22, 38); coin(c, w * .74, h * .38, 28);
+  const bt = h * .60, ww = 40, r = 20;
+  c.save(); c.beginPath(); c.rect(0, bt, w, h - bt); c.clip();
+  const rows = Math.floor((h - bt) / (r / 2)) + 2, cols = Math.floor(w / ww) + 2;
+  for (let row = 0; row <= rows; row++) { const cy = bt + row * r / 2, off = row % 2 ? r : 0;
+    for (let col = -1; col <= cols; col++) { const x = col * ww + off; circ(c, x, cy, r, '#F3ECDD');
+      [1, .72, .44, .16].forEach(k => { c.beginPath(); c.arc(x, cy, r * k, 0, 7); c.strokeStyle = 'rgba(43,70,102,.28)'; c.lineWidth = 1.2; c.stroke(); }); } }
+  c.restore();
+  const fh = (h - bt) * .6, g = c.createLinearGradient(0, bt, 0, bt + fh); g.addColorStop(0, '#F3ECDD'); g.addColorStop(1, 'rgba(243,236,221,0)'); c.fillStyle = g; c.fillRect(0, bt, w, fh);
+}
+
+// ---------- pagoda ----------
+function drawPagoda(c,w,h){const s=h*0.80/2.85,cx=w*0.74,base=h*0.94;const X=v=>cx+v*s,Y=v=>base-v*s;
+const box=(x,yb,bw,bh,col)=>{c.fillStyle=col;c.fillRect(X(x),Y(yb+bh),bw*s,bh*s)};
+const wall='rgba(31,27,23,.16)',roofC='rgba(31,27,23,.30)',inkC='rgba(31,27,23,.35)';
+circ(c,w*0.30,h*0.38,h*0.17,'rgba(198,58,43,.13)');
+box(-0.5600,0.0000,1.1200,0.0500,"rgba(31,27,23,.22)");
+box(-0.2800,0.0500,0.5600,0.4000,wall);
+box(-0.2352,0.6400,0.4704,0.2500,wall);
+box(-0.1960,1.0700,0.3920,0.2200,wall);
+box(-0.1624,1.4600,0.3248,0.1900,wall);
+box(-0.1344,1.8050,0.2688,0.1700,wall);
+line(c,X(-0.2800),Y(0.0500),X(-0.2800),Y(0.4500),'rgba(31,27,23,.25)',1.5);
+line(c,X(-0.0933),Y(0.0500),X(-0.0933),Y(0.4500),'rgba(31,27,23,.25)',1.5);
+line(c,X(0.0933),Y(0.0500),X(0.0933),Y(0.4500),'rgba(31,27,23,.25)',1.5);
+line(c,X(0.2800),Y(0.0500),X(0.2800),Y(0.4500),'rgba(31,27,23,.25)',1.5);
+line(c,X(-0.2352),Y(0.6400),X(-0.2352),Y(0.8900),'rgba(31,27,23,.25)',1.5);
+line(c,X(-0.0784),Y(0.6400),X(-0.0784),Y(0.8900),'rgba(31,27,23,.25)',1.5);
+line(c,X(0.0784),Y(0.6400),X(0.0784),Y(0.8900),'rgba(31,27,23,.25)',1.5);
+line(c,X(0.2352),Y(0.6400),X(0.2352),Y(0.8900),'rgba(31,27,23,.25)',1.5);
+line(c,X(-0.1960),Y(1.0700),X(-0.1960),Y(1.2900),'rgba(31,27,23,.25)',1.5);
+line(c,X(-0.0653),Y(1.0700),X(-0.0653),Y(1.2900),'rgba(31,27,23,.25)',1.5);
+line(c,X(0.0653),Y(1.0700),X(0.0653),Y(1.2900),'rgba(31,27,23,.25)',1.5);
+line(c,X(0.1960),Y(1.0700),X(0.1960),Y(1.2900),'rgba(31,27,23,.25)',1.5);
+line(c,X(-0.1624),Y(1.4600),X(-0.1624),Y(1.6500),'rgba(31,27,23,.25)',1.5);
+line(c,X(-0.0541),Y(1.4600),X(-0.0541),Y(1.6500),'rgba(31,27,23,.25)',1.5);
+line(c,X(0.0541),Y(1.4600),X(0.0541),Y(1.6500),'rgba(31,27,23,.25)',1.5);
+line(c,X(0.1624),Y(1.4600),X(0.1624),Y(1.6500),'rgba(31,27,23,.25)',1.5);
+line(c,X(-0.1344),Y(1.8050),X(-0.1344),Y(1.9750),'rgba(31,27,23,.25)',1.5);
+line(c,X(-0.0448),Y(1.8050),X(-0.0448),Y(1.9750),'rgba(31,27,23,.25)',1.5);
+line(c,X(0.0448),Y(1.8050),X(0.0448),Y(1.9750),'rgba(31,27,23,.25)',1.5);
+line(c,X(0.1344),Y(1.8050),X(0.1344),Y(1.9750),'rgba(31,27,23,.25)',1.5);
+box(-0.2900,0.4150,0.5800,0.0300,'rgba(198,58,43,.45)');
+box(-0.2452,0.8550,0.4904,0.0300,'rgba(198,58,43,.45)');
+box(-0.2060,1.2550,0.4120,0.0300,'rgba(198,58,43,.45)');
+box(-0.1724,1.6150,0.3448,0.0300,'rgba(198,58,43,.45)');
+box(-0.1444,1.9400,0.2888,0.0300,'rgba(198,58,43,.45)');
+c.beginPath();c.moveTo(X(-0.5700),Y(0.2540));c.bezierCurveTo(X(-0.4560),Y(0.1664),X(-0.4332),Y(0.1700),X(-0.2964),Y(0.1700));c.lineTo(X(0.2964),Y(0.1700));c.bezierCurveTo(X(0.4332),Y(0.1700),X(0.4560),Y(0.1664),X(0.5700),Y(0.2540));c.bezierCurveTo(X(0.4332),Y(0.2660),X(0.5124),Y(0.2636),X(0.3300),Y(0.2900));c.lineTo(X(-0.3300),Y(0.2900));c.bezierCurveTo(X(-0.5124),Y(0.2636),X(-0.4332),Y(0.2660),X(-0.5700),Y(0.2540));c.closePath();c.fillStyle=roofC;c.fill();
+c.beginPath();c.moveTo(X(-0.5000),Y(0.5925));c.bezierCurveTo(X(-0.4000),Y(0.4443),X(-0.3800),Y(0.4500),X(-0.2600),Y(0.4500));c.lineTo(X(0.2600),Y(0.4500));c.bezierCurveTo(X(0.3800),Y(0.4500),X(0.4000),Y(0.4443),X(0.5000),Y(0.5925));c.bezierCurveTo(X(0.3800),Y(0.6115),X(0.4070),Y(0.5982),X(0.2470),Y(0.6400));c.lineTo(X(-0.2470),Y(0.6400));c.bezierCurveTo(X(-0.4070),Y(0.5982),X(-0.3800),Y(0.6115),X(-0.5000),Y(0.5925));c.closePath();c.fillStyle=roofC;c.fill();
+c.beginPath();c.moveTo(X(-0.4200),Y(1.0250));c.bezierCurveTo(X(-0.3360),Y(0.8846),X(-0.3192),Y(0.8900),X(-0.2184),Y(0.8900));c.lineTo(X(0.2184),Y(0.8900));c.bezierCurveTo(X(0.3192),Y(0.8900),X(0.3360),Y(0.8846),X(0.4200),Y(1.0250));c.bezierCurveTo(X(0.3192),Y(1.0430),X(0.3402),Y(1.0304),X(0.2058),Y(1.0700));c.lineTo(X(-0.2058),Y(1.0700));c.bezierCurveTo(X(-0.3402),Y(1.0304),X(-0.3192),Y(1.0430),X(-0.4200),Y(1.0250));c.closePath();c.fillStyle=roofC;c.fill();
+c.beginPath();c.moveTo(X(-0.3500),Y(1.4175));c.bezierCurveTo(X(-0.2800),Y(1.2849),X(-0.2660),Y(1.2900),X(-0.1820),Y(1.2900));c.lineTo(X(0.1820),Y(1.2900));c.bezierCurveTo(X(0.2660),Y(1.2900),X(0.2800),Y(1.2849),X(0.3500),Y(1.4175));c.bezierCurveTo(X(0.2660),Y(1.4345),X(0.2825),Y(1.4226),X(0.1705),Y(1.4600));c.lineTo(X(-0.1705),Y(1.4600));c.bezierCurveTo(X(-0.2825),Y(1.4226),X(-0.2660),Y(1.4345),X(-0.3500),Y(1.4175));c.closePath();c.fillStyle=roofC;c.fill();
+c.beginPath();c.moveTo(X(-0.2900),Y(1.7662));c.bezierCurveTo(X(-0.2320),Y(1.6453),X(-0.2204),Y(1.6500),X(-0.1508),Y(1.6500));c.lineTo(X(0.1508),Y(1.6500));c.bezierCurveTo(X(0.2204),Y(1.6500),X(0.2320),Y(1.6453),X(0.2900),Y(1.7662));c.bezierCurveTo(X(0.2204),Y(1.7817),X(0.2339),Y(1.7709),X(0.1411),Y(1.8050));c.lineTo(X(-0.1411),Y(1.8050));c.bezierCurveTo(X(-0.2339),Y(1.7709),X(-0.2204),Y(1.7817),X(-0.2900),Y(1.7662));c.closePath();c.fillStyle=roofC;c.fill();
+c.beginPath();c.moveTo(X(-0.2400),Y(2.0837));c.bezierCurveTo(X(-0.1920),Y(1.9706),X(-0.1824),Y(1.9750),X(-0.1248),Y(1.9750));c.lineTo(X(0.1248),Y(1.9750));c.bezierCurveTo(X(0.1824),Y(1.9750),X(0.1920),Y(1.9706),X(0.2400),Y(2.0837));c.bezierCurveTo(X(0.1824),Y(2.0982),X(0.1268),Y(2.0881),X(0.0500),Y(2.1200));c.lineTo(X(-0.0500),Y(2.1200));c.bezierCurveTo(X(-0.1268),Y(2.0881),X(-0.1824),Y(2.0982),X(-0.2400),Y(2.0837));c.closePath();c.fillStyle=roofC;c.fill();
+box(-0.0500,2.1200,0.1000,0.0500,inkC);
+box(-0.0120,2.1700,0.0240,0.6200,inkC);
+box(-0.0425,2.2700,0.0850,0.0140,inkC);
+box(-0.0405,2.3150,0.0810,0.0140,inkC);
+box(-0.0385,2.3600,0.0770,0.0140,inkC);
+box(-0.0365,2.4050,0.0730,0.0140,inkC);
+box(-0.0345,2.4500,0.0690,0.0140,inkC);
+box(-0.0325,2.4950,0.0650,0.0140,inkC);
+box(-0.0305,2.5400,0.0610,0.0140,inkC);
+box(-0.0285,2.5850,0.0570,0.0140,inkC);
+box(-0.0265,2.6300,0.0530,0.0140,inkC);
+circ(c,X(0),Y(2.9000),0.0350*s,inkC);
+ink(c,'rgba(243,236,221,.85)',w*0.1,Y(0.32),w*0.8,16,41,0.6,1,false);ink(c,'rgba(31,27,23,.30)',w*0.04,base-3,w*0.92,8,21,0.4,1,true);
+[[.10,.30],[.22,.55],[.35,.20],[.46,.62],[.55,.12],[.15,.78],[.40,.84],[.88,.22]].forEach((p,i)=>circ(c,w*p[0],h*p[1],3+i%3,'rgba(229,154,154,.55)'));}
+
+// ---------- pintar canvas ----------
+function fit(cv) {
+  const r = cv.getBoundingClientRect(), d = window.devicePixelRatio || 1;
+  cv.width = Math.max(1, r.width * d); cv.height = Math.max(1, r.height * d);
+  const c = cv.getContext('2d'); c.setTransform(d, 0, 0, d, 0, 0); c.clearRect(0, 0, r.width, r.height);
+  return [c, r.width, r.height];
+}
+const ARTS = {pagoda: drawPagoda, birds: drawBirds, house: drawHouse, torii: drawTorii, waves: drawWaves};
+function drawMeter(cv, frac) {
+  const [c, w, h] = fit(cv);
+  ink(c, '#DCD2BE', 0, 0, w, h, 7, .7, .7, false);
+  if (frac > 0) { const col = frac >= 1 ? '#C63A2B' : frac >= .75 ? '#C79A33' : '#7A8B52'; ink(c, col, 0, 0, Math.max(h * 1.2, w * Math.min(frac, 1)), h, 3, 1, .8, true); }
+}
+function paintAll(anim) {
+  document.querySelectorAll('canvas.art').forEach(cv => { const [c, w, h] = fit(cv); ARTS[cv.dataset.art](c, w, h); });
+  document.querySelectorAll('canvas.mount').forEach(cv => { const [c, w, h] = fit(cv); mountains(c, w, h); });
+  document.querySelectorAll('canvas.enso').forEach(cv => { const [c, w, h] = fit(cv); enso(c, w / 2, h / 2, Math.min(w, h) * .46, 8, 5); });
+  document.querySelectorAll('canvas.brush').forEach(cv => { const [c, w, h] = fit(cv); ink(c, 'rgba(198,58,43,.85)', 0, 0, w, h, +cv.dataset.seed, 1, .35, true); });
+  document.querySelectorAll('canvas.meter').forEach(cv => {
+    const f = +cv.dataset.frac;
+    if (!anim) { drawMeter(cv, f); return; }
+    const t0 = performance.now();
+    const step = now => { const k = Math.min(1, (now - t0) / 700); drawMeter(cv, f * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  });
+}
+
+// ---------- piezas de interfaz ----------
+const hanko = (k, s, col) => '<span class="hanko" style="width:' + s + 'px;height:' + s + 'px;font-size:' + s * .55 + 'px' + (col ? ';background:' + col : '') + '">' + k + '</span>';
+const head = (k, t, sub, seed) => '<div class="head"><div class="row" style="gap:12px">' + hanko(k, 42) + '<div><h1>' + t + '</h1><div class="sub">' + esc(sub) + '</div></div></div><canvas class="brush" data-seed="' + seed + '" style="width:150px;height:9px"></canvas></div>';
+const title = (k, t) => '<div class="title">' + hanko(k, 26) + '<span>' + t + '</span></div>';
+const mapsUrl = q => 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q);
+function meterHtml() {
+  const sp = spent(), tot = T.budget || 0, frac = tot > 0 ? sp / tot : 0;
+  const col = frac >= 1 ? '#C63A2B' : frac >= .75 ? '#C79A33' : '#7A8B52';
+  const msg = tot <= 0 ? 'Sin presupuesto definido' : sp <= tot ? 'Quedan ' + bm(tot - sp) : 'Excedido por ' + bm(sp - tot);
+  return '<div class="row between" style="align-items:flex-end"><div><div class="muted small">Gastado</div><div class="b" style="font-size:22px">' + bm(sp) + '</div></div><div style="text-align:right"><div class="muted small">Presupuesto</div><div style="font-size:16px">' + bm(tot) + '</div></div></div>' +
+    '<canvas class="meter" data-frac="' + frac + '" style="width:100%;height:26px;margin-top:10px;display:block"></canvas>' +
+    '<div class="row between small" style="margin-top:6px"><b style="color:' + col + '">' + Math.floor(frac * 100) + '%</b><span style="color:' + (sp > tot && tot > 0 ? '#C63A2B' : '#857B6F') + '">' + msg + '</span></div>';
+}
+const nightsOf = s => { const a = pd(s.checkIn), b = pd(s.checkOut); return a && b ? Math.max(0, dayDiff(a, b)) : 0; };
+
+// ---------- pantallas ----------
+function pHome() {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const st = pd(T.start), en = pd(T.end), d = st ? dayDiff(today, st) : 0;
+  let big, small;
+  if (!st) { big = '日程未定'; small = 'Fechas sin definir'; }
+  else if (d > 0) { big = 'あと ' + d + ' 日'; small = 'días para partir'; }
+  else if (!en || today <= en) { big = '第' + (1 - d) + '日'; small = 'día ' + (1 - d) + ' del viaje'; }
+  else { big = '完'; small = 'viaje terminado'; }
+  const hero = '<div class="hero"><canvas class="mount"></canvas><div class="fade"></div><span class="pill">Solo lectura</span>' +
+    '<div class="sun"><canvas class="enso"></canvas><div>旅</div></div>' +
+    '<div class="txt"><span class="wm">Viaja<span class="pn">p</span><span class="o">旅</span><span class="pn">n</span></span>' +
+    '<div class="muted" style="font-size:16px;margin-top:4px">' + esc(T.name) + '</div><div class="big">' + big + '</div><div>' + small + '</div>' +
+    (st && en ? '<div class="muted small">' + fd(T.start) + ' → ' + fd(T.end) + '</div>' : '') + '</div></div>';
+  let h = hero + '<div class="stack">';
+  h += '<div class="card click" data-go="4">' + title('円', 'Presupuesto') + '<div style="height:12px"></div>' +
+    (T.budget > 0 ? meterHtml() : '<div class="muted">Sin presupuesto definido.</div>') +
+    (yenNoRate() ? '<div class="red small" style="margin-top:10px">Faltó la cotización del yen (1 ¥ = ? ' + BASE + ') al armar esta copia.</div>' : '') + '</div>';
+  if (T.expenses.length || sumBook() > 0) {
+    h += '<div class="card">' + title('計', 'Resumen') + '<div style="height:8px"></div>' +
+      '<div class="sum"><span class="muted">Gastos registrados</span><b>' + bm(sumExp()) + '</b></div>' +
+      '<div class="sum"><span class="muted">' + (T.countBookings ? 'Vuelos y estadía (incluidos)' : 'Vuelos y estadía (no incluidos)') + '</span><b>' + bm(sumBook()) + '</b></div>';
+    const by = {}; T.expenses.forEach(e => by[e.category] = (by[e.category] || 0) + toBase(e.amount, e.cur));
+    Object.entries(by).sort((a, b) => b[1] - a[1]).forEach(([k, v]) => { h += '<div class="cat">' + hanko(cat(k)[0], 24, '#2B4666') + '<span class="grow">' + cat(k)[1] + '</span><b>' + bm(v) + '</b></div>'; });
+    h += '</div>';
+  }
+  const nights = T.stays.reduce((s, x) => s + nightsOf(x), 0);
+  const cn = (go, k, n, l) => '<div class="card click" data-go="' + go + '"><div class="red b" style="font-size:18px">' + k + '</div><div class="n">' + n + '</div><div class="muted" style="font-size:11px">' + l + '</div></div>';
+  h += '<div class="counters">' + cn(1, '便', T.flights.length, 'vuelos') + cn(2, '宿', nights, 'noches') + cn(3, '日', T.places.length, 'lugares') + cn(4, '円', T.expenses.length, 'gastos') + '</div>';
+  const nx = T.flights.filter(f => { const x = pd(f.depDate); return x && x >= today; }).sort((a, b) => (a.depDate + a.depTime).localeCompare(b.depDate + b.depTime))[0];
+  if (nx) h += '<div class="card click" data-go="1">' + title('便', 'Próximo vuelo') + '<div class="b" style="font-size:22px;margin-top:8px">' + esc(nx.from || '?') + '  →  ' + esc(nx.to || '?') + '</div><div class="muted">' + fd(nx.depDate) + (nx.depTime ? ' · ' + esc(nx.depTime) : '') + '</div></div>';
+  h += '<div class="foot">Copia de solo lectura · exportada el ' + esc(EXPORTED) + '</div></div>';
+  return h;
+}
+function pFlights() {
+  let h = head('便', 'Vuelos', T.flights.length + ' registrados', T.flights.length + 3) + '<div class="stack">';
+  if (!T.flights.length) h += '<div class="card empty">Todavía no hay vuelos cargados.</div>';
+  T.flights.slice().sort((a, b) => (a.depDate + a.depTime).localeCompare(b.depDate + b.depTime)).forEach(f => {
+    const col = (l, d, t) => '<div><div class="muted" style="font-size:11px">' + l + '</div><div>' + (d ? fd(d) : '—') + '</div>' + (t ? '<div class="b">' + esc(t) + '</div>' : '') + '</div>';
+    h += '<div class="card"><div class="row between"><span class="muted" style="font-size:14px">' + (esc([f.airline, f.number].filter(Boolean).join(' · ')) || 'Vuelo') + '</span>' + (f.cost > 0 ? '<b>' + money(f.cost, f.cur) + '</b>' : '') + '</div>' +
+      '<div class="row" style="margin-top:6px"><span class="code grow">' + esc(f.from || '?') + '</span><span class="arrow">→</span><span class="code grow" style="text-align:right">' + esc(f.to || '?') + '</span></div><div class="dashed"></div>' +
+      '<div class="row between">' + col('Salida', f.depDate, f.depTime) + col('Llegada', f.arrDate, f.arrTime) + '</div>' +
+      (f.confirmation ? '<div class="ai b small" style="margin-top:8px">Reserva: ' + esc(f.confirmation) + '</div>' : '') +
+      (f.notes ? '<div class="muted small" style="margin-top:4px">' + esc(f.notes) + '</div>' : '') + '</div>';
+  });
+  return h + '</div>';
+}
+function pStays() {
+  let h = head('宿', 'Estadía', T.stays.reduce((s, x) => s + nightsOf(x), 0) + ' noches en ' + T.stays.length + ' alojamientos', T.stays.length + 5) + '<div class="stack">';
+  if (!T.stays.length) h += '<div class="card empty">Todavía no hay alojamientos cargados.</div>';
+  T.stays.slice().sort((a, b) => a.checkIn.localeCompare(b.checkIn)).forEach(s => {
+    h += '<div class="card"><div class="row between"><div class="grow"><div class="b" style="font-size:16px">' + (esc(s.name) || 'Alojamiento') + '</div>' + (s.city ? '<div class="ai">' + esc(s.city) + '</div>' : '') + '</div>' + (s.cost > 0 ? '<b>' + money(s.cost, s.cur) + '</b>' : '') + '</div><div class="dashed"></div>' +
+      '<div class="row between"><div><div class="muted" style="font-size:11px">Check-in</div><div>' + (s.checkIn ? fd(s.checkIn) : '—') + '</div></div><b class="red">' + nightsOf(s) + ' 泊</b><div style="text-align:right"><div class="muted" style="font-size:11px">Check-out</div><div>' + (s.checkOut ? fd(s.checkOut) : '—') + '</div></div></div>' +
+      (s.address ? '<div class="muted small" style="margin-top:6px">' + esc(s.address) + '</div>' : '') +
+      (s.confirmation ? '<div class="ai b small">Reserva: ' + esc(s.confirmation) + '</div>' : '') +
+      (s.notes ? '<div class="muted small">' + esc(s.notes) + '</div>' : '') +
+      '<div style="margin-top:8px"><a class="maps" target="_blank" rel="noopener" href="' + mapsUrl([s.name, s.address || s.city].filter(Boolean).join(' ')) + '">Abrir en Maps</a></div></div>';
+  });
+  return h + '</div>';
+}
+let selIso = null;
+function pItin() {
+  const st = pd(T.start), en = pd(T.end), days = [];
+  if (st && en && en >= st) for (const d = new Date(st); d <= en && days.length < 90; d.setDate(d.getDate() + 1)) days.push(new Date(d));
+  let h = head('日', 'Itinerario', days.length ? days.length + ' días · ' + T.places.length + ' lugares' : 'Sin fechas', 9) + '<div class="stack">';
+  if (!days.length) return h + '<div class="card empty">El viaje todavía no tiene fechas de inicio y fin.</div></div>';
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const sel = days.find(d => iso(d) === selIso) || days.find(d => iso(d) === iso(today)) || days[0];
+  h += '<div class="chips">' + days.map((d, i) => { const n = T.places.filter(p => p.date === iso(d)).length; return '<div class="chip ' + (iso(d) === iso(sel) ? 'on' : '') + '" data-day="' + iso(d) + '">Día ' + (i + 1) + '<br><b>' + fshort(d) + '</b><br>' + fwd(d) + '<br><span class="dot">' + (n ? '● ' + n : '&nbsp;') + '</span></div>'; }).join('') + '</div>';
+  const dp = T.places.filter(p => p.date === iso(sel)).sort((a, b) => ((a.time || '99:99') + a.name).localeCompare((b.time || '99:99') + b.name));
+  const est = dp.reduce((s, p) => s + (p.estYen || 0), 0);
+  h += '<div class="row between"><b style="font-size:16px">' + fd(iso(sel)) + '</b>' + (est > 0 ? '<span class="muted">Estimado ¥' + num(est) + '</span>' : '') + '</div>';
+  if (!dp.length) h += '<div class="card empty">Nada planeado para este día.</div>';
+  dp.forEach(p => {
+    h += '<div class="card" style="padding:12px"><div class="place"><span class="chk ' + (p.done ? 'done' : '') + '">' + (p.done ? '✓' : '') + '</span><div class="grow">' +
+      '<div>' + (p.time ? '<b class="red">' + esc(p.time) + '</b>  ' : '') + '<b class="' + (p.done ? 'done-t' : '') + '" style="font-size:16px">' + esc(p.name) + '</b></div>' +
+      (p.notes ? '<div class="muted small">' + esc(p.notes) + '</div>' : '') + (p.estYen > 0 ? '<div class="ai small">¥' + num(p.estYen) + '</div>' : '') + '</div>' +
+      '<a class="maps" target="_blank" rel="noopener" href="' + mapsUrl(p.name + ' Japan') + '">Mapa</a></div></div>';
+  });
+  return h + '</div>';
+}
+function pExp() {
+  let h = head('円', 'Gastos', T.expenses.length + ' movimientos', 12) + '<div class="stack">';
+  h += '<div class="card">' + (T.budget > 0 ? meterHtml() : '<div class="muted">Sin presupuesto definido.</div>') +
+    '<div class="row between small muted" style="margin-top:10px"><span>Gastos: ' + bm(sumExp()) + '</span><span>Vuelos y estadía: ' + bm(sumBook()) + (T.countBookings ? '' : ' (no suma)') + '</span></div>' +
+    (yenNoRate() ? '<div class="red small" style="margin-top:6px">Faltó la cotización del yen (1 ¥ = ? ' + BASE + ') al armar esta copia.</div>' : '') + '</div>';
+  if (T.travelers.length > 1 && T.expenses.length) {
+    const net = balances();
+    h += '<div class="card">' + title('割', 'Saldos') + '<div style="height:8px"></div>';
+    T.travelers.forEach(t => { const v = net[t.id] || 0; h += '<div class="sum"><span>' + esc(t.name || 'Viajero') + '</span><b style="color:' + (v > .5 ? '#7A8B52' : v < -.5 ? '#C63A2B' : '#857B6F') + '">' + (v > .5 ? 'le deben ' + bm(v) : v < -.5 ? 'debe ' + bm(-v) : 'al día') + '</b></div>'; });
+    const tr = settle(net);
+    if (tr.length) { h += '<div class="dashed"></div><div class="muted small">Para saldar</div>'; tr.forEach(x => { h += '<div>' + esc(nameOf(x[0])) + ' → ' + esc(nameOf(x[1])) + ': ' + bm(x[2]) + '</div>'; }); }
+    h += '</div>';
+  }
+  if (!T.expenses.length) h += '<div class="card empty">Todavía no hay gastos registrados.</div>';
+  let last = null;
+  T.expenses.slice().sort((a, b) => b.date.localeCompare(a.date)).forEach(e => {
+    if (e.date !== last) { last = e.date; h += '<div class="dayh">' + (e.date ? fd(e.date) : 'Sin fecha') + '</div>'; }
+    const c = cat(e.category), multi = T.travelers.length > 1;
+    const who = multi ? 'pagó ' + esc(nameOf(e.paidBy)) + (e.split && e.split.length >= 1 && e.split.length < T.travelers.length ? ' · ' + e.split.length + ' personas' : '') : c[1];
+    h += '<div class="card" style="padding:12px"><div class="row" style="gap:12px">' + hanko(c[0], 36, '#2B4666') + '<div class="grow"><div class="b">' + esc(e.title || c[1]) + '</div><div class="muted small">' + who + '</div></div>' +
+      '<div style="text-align:right"><div class="b">' + money(e.amount, e.cur) + '</div>' + (e.cur === 'JPY' && T.rate > 0 ? '<div class="muted small">≈ ' + bm(toBase(e.amount, e.cur)) + '</div>' : '') + '</div></div></div>';
+  });
+  return h + '</div>';
+}
+
+// ---------- armado ----------
+const TABS = [['旅', 'Inicio', 'pagoda', pHome], ['便', 'Vuelos', 'birds', pFlights], ['宿', 'Estadía', 'house', pStays], ['日', 'Itinerario', 'torii', pItin], ['円', 'Gastos', 'waves', pExp]];
+const pager = document.getElementById('pager'), nav = document.getElementById('nav');
+pager.innerHTML = TABS.map((t, i) => '<section class="slide' + (i === 0 ? ' home' : '') + '"><canvas class="art" data-art="' + t[2] + '"></canvas><div class="scroll"></div></section>').join('');
+nav.innerHTML = TABS.map((t, i) => '<button data-go="' + i + '"><span class="k">' + t[0] + '</span><span class="l">' + t[1] + '</span></button>').join('');
+const scrolls = [...pager.querySelectorAll('.scroll')];
+function render(i) { scrolls[i].innerHTML = TABS[i][3](); paintAll(false); }
+function setActive(i) { [...nav.children].forEach((b, j) => b.classList.toggle('on', i === j)); }
+function goTo(i) { pager.scrollTo({left: i * pager.clientWidth, behavior: 'smooth'}); }
+pager.addEventListener('scroll', () => setActive(Math.round(pager.scrollLeft / pager.clientWidth)), {passive: true});
+document.addEventListener('click', e => {
+  const ch = e.target.closest('[data-day]'); if (ch) { selIso = ch.dataset.day; const x = scrolls[3].scrollTop; render(3); scrolls[3].scrollTop = x; return; }
+  const g = e.target.closest('[data-go]'); if (g) goTo(+g.dataset.go);
+});
+TABS.forEach((t, i) => scrolls[i].innerHTML = t[3]());
+setActive(0);
+requestAnimationFrame(() => paintAll(true));
+window.addEventListener('resize', () => paintAll(false));
+</script>
+</body>
+</html>

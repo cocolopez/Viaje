@@ -33,59 +33,138 @@ fun InkArt(kind: ArtKind, modifier: Modifier = Modifier) {
     }
 }
 
-// ---------- Inicio: pagoda de cinco pisos con pétalos de sakura ----------
-
-private fun roofPath(cx: Float, yTop: Float, yBot: Float, rw: Float, tip: Float): Path = Path().apply {
-    val l = cx - rw / 2f
-    val r = cx + rw / 2f
-    val mid = yTop + (yBot - yTop) * 0.45f
-    moveTo(l, yBot - tip)
-    cubicTo(l + rw * 0.10f, yBot + tip * 0.2f, l + rw * 0.18f, yBot, cx - rw * 0.28f, yBot)
-    lineTo(cx + rw * 0.28f, yBot)
-    cubicTo(r - rw * 0.18f, yBot, r - rw * 0.10f, yBot + tip * 0.2f, r, yBot - tip)
-    cubicTo(r - rw * 0.15f, mid, cx + rw * 0.22f, yTop, cx, yTop)
-    cubicTo(cx - rw * 0.22f, yTop, l + rw * 0.15f, mid, l, yBot - tip)
-    close()
-}
+// ---------- Inicio: pagoda de cinco pisos (gojūnotō) con pétalos de sakura ----------
 
 private fun DrawScope.drawPagoda() {
     val w = size.width
     val h = size.height
     val d = 1.dp.toPx()
+    val s = h * 0.80f / 2.85f // alto total ≈ 2,8 unidades (ancho del primer techo = 1)
     val cx = w * 0.74f
     val base = h * 0.94f
-    val tiers = 5
-    val u = h * 0.80f / (tiers + 1.4f)
+    fun X(v: Float) = cx + v * s
+    fun Y(v: Float) = base - v * s
+    fun box(x: Float, yb: Float, bw: Float, bh: Float, c: Color) =
+        drawRect(c, Offset(X(x), Y(yb + bh)), Size(bw * s, bh * s))
+    val wall = Sumi.copy(alpha = 0.16f)
+    val roofC = Sumi.copy(alpha = 0.30f)
+    val inkC = Sumi.copy(alpha = 0.35f)
 
     // sol pálido detrás
     drawCircle(Shu.copy(alpha = 0.13f), h * 0.17f, Offset(w * 0.30f, h * 0.38f))
 
-    // plataforma
-    drawRect(Sumi.copy(alpha = 0.22f), Offset(cx - w * 0.17f, base - 7 * d), Size(w * 0.34f, 7 * d))
-    var y = base - 7 * d
-    for (i in 0 until tiers) {
-        val rw = w * 0.30f * (1f - 0.13f * i)
-        val bodyH = u * 0.60f
-        val roofH = u * 0.40f
-        val bw = rw * 0.56f
-        val yBot = y - bodyH
-        val yTop = yBot - roofH
-        drawRect(Sumi.copy(alpha = 0.16f), Offset(cx - bw / 2f, yBot), Size(bw, bodyH))
-        drawRect(Shu.copy(alpha = 0.35f), Offset(cx - bw / 2f, yBot), Size(bw, 3 * d))
-        drawPath(roofPath(cx, yTop, yBot, rw, roofH * 0.35f), Sumi.copy(alpha = 0.30f))
-        y = yTop + roofH * 0.25f
+    box(-0.5600f, 0.0000f, 1.1200f, 0.0500f, Sumi.copy(alpha = 0.22f))
+    box(-0.2800f, 0.0500f, 0.5600f, 0.4000f, wall)
+    box(-0.2352f, 0.6400f, 0.4704f, 0.2500f, wall)
+    box(-0.1960f, 1.0700f, 0.3920f, 0.2200f, wall)
+    box(-0.1624f, 1.4600f, 0.3248f, 0.1900f, wall)
+    box(-0.1344f, 1.8050f, 0.2688f, 0.1700f, wall)
+    drawLine(Sumi.copy(alpha = 0.25f), Offset(X(-0.2800f), Y(0.0500f)), Offset(X(-0.2800f), Y(0.4500f)), strokeWidth = 1.5f * d)
+    drawLine(Sumi.copy(alpha = 0.25f), Offset(X(-0.0933f), Y(0.0500f)), Offset(X(-0.0933f), Y(0.4500f)), strokeWidth = 1.5f * d)
+    drawLine(Sumi.copy(alpha = 0.25f), Offset(X(0.0933f), Y(0.0500f)), Offset(X(0.0933f), Y(0.4500f)), strokeWidth = 1.5f * d)
+    drawLine(Sumi.copy(alpha = 0.25f), Offset(X(0.2800f), Y(0.0500f)), Offset(X(0.2800f), Y(0.4500f)), strokeWidth = 1.5f * d)
+    drawLine(Sumi.copy(alpha = 0.25f), Offset(X(-0.2352f), Y(0.6400f)), Offset(X(-0.2352f), Y(0.8900f)), strokeWidth = 1.5f * d)
+    drawLine(Sumi.copy(alpha = 0.25f), Offset(X(-0.0784f), Y(0.6400f)), Offset(X(-0.0784f), Y(0.8900f)), strokeWidth = 1.5f * d)
+    drawLine(Sumi.copy(alpha = 0.25f), Offset(X(0.0784f), Y(0.6400f)), Offset(X(0.0784f), Y(0.8900f)), strokeWidth = 1.5f * d)
+    drawLine(Sumi.copy(alpha = 0.25f), Offset(X(0.2352f), Y(0.6400f)), Offset(X(0.2352f), Y(0.8900f)), strokeWidth = 1.5f * d)
+    drawLine(Sumi.copy(alpha = 0.25f), Offset(X(-0.1960f), Y(1.0700f)), Offset(X(-0.1960f), Y(1.2900f)), strokeWidth = 1.5f * d)
+    drawLine(Sumi.copy(alpha = 0.25f), Offset(X(-0.0653f), Y(1.0700f)), Offset(X(-0.0653f), Y(1.2900f)), strokeWidth = 1.5f * d)
+    drawLine(Sumi.copy(alpha = 0.25f), Offset(X(0.0653f), Y(1.0700f)), Offset(X(0.0653f), Y(1.2900f)), strokeWidth = 1.5f * d)
+    drawLine(Sumi.copy(alpha = 0.25f), Offset(X(0.1960f), Y(1.0700f)), Offset(X(0.1960f), Y(1.2900f)), strokeWidth = 1.5f * d)
+    drawLine(Sumi.copy(alpha = 0.25f), Offset(X(-0.1624f), Y(1.4600f)), Offset(X(-0.1624f), Y(1.6500f)), strokeWidth = 1.5f * d)
+    drawLine(Sumi.copy(alpha = 0.25f), Offset(X(-0.0541f), Y(1.4600f)), Offset(X(-0.0541f), Y(1.6500f)), strokeWidth = 1.5f * d)
+    drawLine(Sumi.copy(alpha = 0.25f), Offset(X(0.0541f), Y(1.4600f)), Offset(X(0.0541f), Y(1.6500f)), strokeWidth = 1.5f * d)
+    drawLine(Sumi.copy(alpha = 0.25f), Offset(X(0.1624f), Y(1.4600f)), Offset(X(0.1624f), Y(1.6500f)), strokeWidth = 1.5f * d)
+    drawLine(Sumi.copy(alpha = 0.25f), Offset(X(-0.1344f), Y(1.8050f)), Offset(X(-0.1344f), Y(1.9750f)), strokeWidth = 1.5f * d)
+    drawLine(Sumi.copy(alpha = 0.25f), Offset(X(-0.0448f), Y(1.8050f)), Offset(X(-0.0448f), Y(1.9750f)), strokeWidth = 1.5f * d)
+    drawLine(Sumi.copy(alpha = 0.25f), Offset(X(0.0448f), Y(1.8050f)), Offset(X(0.0448f), Y(1.9750f)), strokeWidth = 1.5f * d)
+    drawLine(Sumi.copy(alpha = 0.25f), Offset(X(0.1344f), Y(1.8050f)), Offset(X(0.1344f), Y(1.9750f)), strokeWidth = 1.5f * d)
+    box(-0.2900f, 0.4150f, 0.5800f, 0.0300f, Shu.copy(alpha = 0.45f))
+    box(-0.2452f, 0.8550f, 0.4904f, 0.0300f, Shu.copy(alpha = 0.45f))
+    box(-0.2060f, 1.2550f, 0.4120f, 0.0300f, Shu.copy(alpha = 0.45f))
+    box(-0.1724f, 1.6150f, 0.3448f, 0.0300f, Shu.copy(alpha = 0.45f))
+    box(-0.1444f, 1.9400f, 0.2888f, 0.0300f, Shu.copy(alpha = 0.45f))
+    val moko = Path().apply {
+        moveTo(X(-0.5700), Y(0.2540))
+        cubicTo(X(-0.4560), Y(0.1664), X(-0.4332), Y(0.1700), X(-0.2964), Y(0.1700))
+        lineTo(X(0.2964), Y(0.1700))
+        cubicTo(X(0.4332), Y(0.1700), X(0.4560), Y(0.1664), X(0.5700), Y(0.2540))
+        cubicTo(X(0.4332), Y(0.2660), X(0.5124), Y(0.2636), X(0.3300), Y(0.2900))
+        lineTo(X(-0.3300), Y(0.2900))
+        cubicTo(X(-0.5124), Y(0.2636), X(-0.4332), Y(0.2660), X(-0.5700), Y(0.2540))
+        close()
     }
-    // remate (sōrin)
-    drawLine(Sumi.copy(alpha = 0.35f), Offset(cx, y), Offset(cx, y - u * 0.9f), strokeWidth = 2.5f * d)
-    for (k in 0..3) {
-        val yy = y - u * 0.18f * (k + 1)
-        val half = (5 - k) * 1.3f * d
-        drawLine(Sumi.copy(alpha = 0.35f), Offset(cx - half, yy), Offset(cx + half, yy), strokeWidth = 2f * d)
+    drawPath(moko, roofC)
+    val roof0 = Path().apply {
+        moveTo(X(-0.5000), Y(0.5925))
+        cubicTo(X(-0.4000), Y(0.4443), X(-0.3800), Y(0.4500), X(-0.2600), Y(0.4500))
+        lineTo(X(0.2600), Y(0.4500))
+        cubicTo(X(0.3800), Y(0.4500), X(0.4000), Y(0.4443), X(0.5000), Y(0.5925))
+        cubicTo(X(0.3800), Y(0.6115), X(0.4070), Y(0.5982), X(0.2470), Y(0.6400))
+        lineTo(X(-0.2470), Y(0.6400))
+        cubicTo(X(-0.4070), Y(0.5982), X(-0.3800), Y(0.6115), X(-0.5000), Y(0.5925))
+        close()
     }
+    drawPath(roof0, roofC)
+    val roof1 = Path().apply {
+        moveTo(X(-0.4200), Y(1.0250))
+        cubicTo(X(-0.3360), Y(0.8846), X(-0.3192), Y(0.8900), X(-0.2184), Y(0.8900))
+        lineTo(X(0.2184), Y(0.8900))
+        cubicTo(X(0.3192), Y(0.8900), X(0.3360), Y(0.8846), X(0.4200), Y(1.0250))
+        cubicTo(X(0.3192), Y(1.0430), X(0.3402), Y(1.0304), X(0.2058), Y(1.0700))
+        lineTo(X(-0.2058), Y(1.0700))
+        cubicTo(X(-0.3402), Y(1.0304), X(-0.3192), Y(1.0430), X(-0.4200), Y(1.0250))
+        close()
+    }
+    drawPath(roof1, roofC)
+    val roof2 = Path().apply {
+        moveTo(X(-0.3500), Y(1.4175))
+        cubicTo(X(-0.2800), Y(1.2849), X(-0.2660), Y(1.2900), X(-0.1820), Y(1.2900))
+        lineTo(X(0.1820), Y(1.2900))
+        cubicTo(X(0.2660), Y(1.2900), X(0.2800), Y(1.2849), X(0.3500), Y(1.4175))
+        cubicTo(X(0.2660), Y(1.4345), X(0.2825), Y(1.4226), X(0.1705), Y(1.4600))
+        lineTo(X(-0.1705), Y(1.4600))
+        cubicTo(X(-0.2825), Y(1.4226), X(-0.2660), Y(1.4345), X(-0.3500), Y(1.4175))
+        close()
+    }
+    drawPath(roof2, roofC)
+    val roof3 = Path().apply {
+        moveTo(X(-0.2900), Y(1.7662))
+        cubicTo(X(-0.2320), Y(1.6453), X(-0.2204), Y(1.6500), X(-0.1508), Y(1.6500))
+        lineTo(X(0.1508), Y(1.6500))
+        cubicTo(X(0.2204), Y(1.6500), X(0.2320), Y(1.6453), X(0.2900), Y(1.7662))
+        cubicTo(X(0.2204), Y(1.7817), X(0.2339), Y(1.7709), X(0.1411), Y(1.8050))
+        lineTo(X(-0.1411), Y(1.8050))
+        cubicTo(X(-0.2339), Y(1.7709), X(-0.2204), Y(1.7817), X(-0.2900), Y(1.7662))
+        close()
+    }
+    drawPath(roof3, roofC)
+    val roof4 = Path().apply {
+        moveTo(X(-0.2400), Y(2.0837))
+        cubicTo(X(-0.1920), Y(1.9706), X(-0.1824), Y(1.9750), X(-0.1248), Y(1.9750))
+        lineTo(X(0.1248), Y(1.9750))
+        cubicTo(X(0.1824), Y(1.9750), X(0.1920), Y(1.9706), X(0.2400), Y(2.0837))
+        cubicTo(X(0.1824), Y(2.0982), X(0.1268), Y(2.0881), X(0.0500), Y(2.1200))
+        lineTo(X(-0.0500), Y(2.1200))
+        cubicTo(X(-0.1268), Y(2.0881), X(-0.1824), Y(2.0982), X(-0.2400), Y(2.0837))
+        close()
+    }
+    drawPath(roof4, roofC)
+    box(-0.0500f, 2.1200f, 0.1000f, 0.0500f, inkC)
+    box(-0.0120f, 2.1700f, 0.0240f, 0.6200f, inkC)
+    box(-0.0425f, 2.2700f, 0.0850f, 0.0140f, inkC)
+    box(-0.0405f, 2.3150f, 0.0810f, 0.0140f, inkC)
+    box(-0.0385f, 2.3600f, 0.0770f, 0.0140f, inkC)
+    box(-0.0365f, 2.4050f, 0.0730f, 0.0140f, inkC)
+    box(-0.0345f, 2.4500f, 0.0690f, 0.0140f, inkC)
+    box(-0.0325f, 2.4950f, 0.0650f, 0.0140f, inkC)
+    box(-0.0305f, 2.5400f, 0.0610f, 0.0140f, inkC)
+    box(-0.0285f, 2.5850f, 0.0570f, 0.0140f, inkC)
+    box(-0.0265f, 2.6300f, 0.0530f, 0.0140f, inkC)
+    drawCircle(inkC, 0.0350f * s, Offset(X(0f), Y(2.9000f)))
 
-    // neblina sobre los pisos bajos
-    inkStroke(Washi.copy(alpha = 0.85f), w * 0.8f, 16 * d, seed = 41, startThick = 0.6f, endThick = 1f, dry = false, left = w * 0.1f, top = base - u * 1.3f)
-    // suelo
+    // neblina sobre el primer piso y suelo de tinta
+    inkStroke(Washi.copy(alpha = 0.85f), w * 0.8f, 16 * d, seed = 41, startThick = 0.6f, endThick = 1f, dry = false, left = w * 0.1f, top = Y(0.32f))
     inkStroke(Sumi.copy(alpha = 0.30f), w * 0.92f, 8 * d, seed = 21, startThick = 0.4f, endThick = 1f, left = w * 0.04f, top = base - 3 * d)
 
     // pétalos de sakura

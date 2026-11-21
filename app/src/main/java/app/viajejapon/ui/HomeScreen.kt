@@ -105,6 +105,7 @@ fun HomeScreen(trip: Trip, pad: PaddingValues, onSettings: () -> Unit, onGo: (In
                 ) { Text("旅", color = Paper, fontSize = 36.sp, fontWeight = FontWeight.Bold) }
             }
             Column(Modifier.align(Alignment.BottomStart).padding(start = 20.dp, bottom = 16.dp)) {
+                Wordmark()
                 Text(trip.name, style = MaterialTheme.typography.titleMedium, color = Nezu)
                 Text(big, fontSize = 40.sp, fontWeight = FontWeight.Bold, color = Sumi)
                 Text(small, style = MaterialTheme.typography.bodyMedium, color = Sumi)
