@@ -1,0 +1,61 @@
+name: Viaje - descomprimir y compilar
+
+on:
+  push:
+    paths:
+      - 'viaje.zip'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Descomprimir viaje.zip y copiar al repo
+        run: |
+          set -e
+          rm -rf /tmp/viaje && mkdir /tmp/viaje
+          unzip -q -o viaje.zip -d /tmp/viaje -x "__MACOSX/*"
+          SRC=/tmp/viaje
+          # Si el zip trae una sola carpeta adentro, usar esa como raíz
+          if [ "$(find /tmp/viaje -mindepth 1 -maxdepth 1 | wc -l)" = "1" ] && [ -d "$(find /tmp/viaje -mindepth 1 -maxdepth 1)" ]; then
+            SRC="$(find /tmp/viaje -mindepth 1 -maxdepth 1)"
+          fi
+          test -f "$SRC/settings.gradle.kts" || { echo "viaje.zip no tiene settings.gradle.kts en la raíz"; exit 1; }
+          rm -rf app
+          rsync -a --exclude '.github' "$SRC"/ ./
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit -m "Actualizar proyecto desde viaje.zip"
+          git push
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.9
+
+      - name: Compilar APK
+        run: gradle assembleDebug --no-daemon
+
+      - name: Guardar APK como artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ViajeJapon-APK
+          path: app/build/outputs/apk/debug/*.apk
+
+      - name: Publicar APK en Releases (última versión)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk ViajeJapon.apk
+          gh release delete latest --yes --cleanup-tag || true
+          gh release create latest ViajeJapon.apk --title "Última versión" --notes "APK compilado automáticamente desde viaje.zip"
