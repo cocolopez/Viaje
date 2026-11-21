@@ -1,5 +1,6 @@
 package app.viajejapon.ui
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -63,7 +64,7 @@ fun HomeScreen(trip: Trip, pad: PaddingValues, onSettings: () -> Unit, onGo: (In
     ) {
         // Cabecera: olas, sol rojo y cuenta regresiva
         Box(Modifier.fillMaxWidth().height(250.dp)) {
-            Seigaiha(Modifier.matchParentSize(), bg = Washi, ring = Ai.copy(alpha = 0.16f))
+            InkMountains(Modifier.matchParentSize())
             Box(
                 Modifier
                     .matchParentSize()
@@ -77,11 +78,23 @@ fun HomeScreen(trip: Trip, pad: PaddingValues, onSettings: () -> Unit, onGo: (In
                 Modifier
                     .align(Alignment.TopEnd)
                     .statusBarsPadding()
-                    .padding(top = 64.dp, end = 28.dp)
-                    .size(84.dp)
-                    .background(Shu, CircleShape),
+                    .padding(top = 52.dp, end = 16.dp)
+                    .size(112.dp),
                 contentAlignment = Alignment.Center,
-            ) { Text("旅", color = Paper, fontSize = 38.sp, fontWeight = FontWeight.Bold) }
+            ) {
+                Canvas(Modifier.matchParentSize()) {
+                    ensoRing(
+                        Sumi.copy(alpha = 0.85f),
+                        center,
+                        radius = size.minDimension * 0.46f,
+                        thickness = 8.dp.toPx(),
+                    )
+                }
+                Box(
+                    Modifier.size(78.dp).background(Shu, CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) { Text("旅", color = Paper, fontSize = 36.sp, fontWeight = FontWeight.Bold) }
+            }
             Column(Modifier.align(Alignment.BottomStart).padding(start = 20.dp, bottom = 16.dp)) {
                 Text(trip.name, style = MaterialTheme.typography.titleMedium, color = Nezu)
                 Text(big, fontSize = 40.sp, fontWeight = FontWeight.Bold, color = Sumi)

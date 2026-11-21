@@ -55,7 +55,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -206,25 +208,43 @@ fun ScreenFrame(
     onAdd: (() -> Unit)?,
     content: LazyListScope.() -> Unit,
 ) {
-    Box(Modifier.fillMaxSize().padding(pad)) {
+    Box(
+        Modifier
+            .fillMaxSize()
+            .drawBehind {
+                // mancha de tinta diluida en la esquina superior
+                val r = size.width * 0.75f
+                val c = Offset(size.width * 0.95f, 0f)
+                drawCircle(
+                    Brush.radialGradient(listOf(Sumi.copy(alpha = 0.08f), Color.Transparent), center = c, radius = r),
+                    radius = r,
+                    center = c,
+                )
+            }
+            .padding(pad),
+    ) {
         LazyColumn(
             Modifier.fillMaxSize(),
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item {
-                Row(
-                    Modifier.statusBarsPadding().padding(top = 12.dp, bottom = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Hanko(kanji, size = 42.dp)
-                    Spacer(Modifier.width(12.dp))
-                    Column {
-                        Text(title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                        if (subtitle != null) {
-                            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = Nezu)
+                Column(Modifier.statusBarsPadding().padding(top = 12.dp, bottom = 4.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Hanko(kanji, size = 42.dp)
+                        Spacer(Modifier.width(12.dp))
+                        Column {
+                            Text(title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                            if (subtitle != null) {
+                                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = Nezu)
+                            }
                         }
                     }
+                    BrushStroke(
+                        Modifier.padding(top = 8.dp).width(150.dp).height(9.dp),
+                        Shu.copy(alpha = 0.85f),
+                        seed = title.length + 2,
+                    )
                 }
             }
             content()
@@ -266,20 +286,17 @@ fun BudgetMeter(spent: Double, total: Double, base: String, modifier: Modifier =
             }
         }
         Spacer(Modifier.height(10.dp))
-        Canvas(Modifier.fillMaxWidth().height(18.dp)) {
-            val h = size.height
-            val cr = CornerRadius(h / 2f)
-            drawRoundRect(Line, size = size, cornerRadius = cr)
+        // Barra de pincel: pista de tinta clara y trazo de color que se va llenando
+        Canvas(Modifier.fillMaxWidth().height(26.dp)) {
+            inkStroke(Line, size.width, size.height, seed = 7, startThick = 0.7f, endThick = 0.7f, dry = false)
             if (anim > 0f) {
-                drawRoundRect(color, size = Size(maxOf(h, size.width * anim), h), cornerRadius = cr)
-            }
-            for (t in listOf(0.25f, 0.5f, 0.75f)) {
-                val x = size.width * t
-                drawLine(
-                    Paper.copy(alpha = 0.8f),
-                    Offset(x, 3.dp.toPx()),
-                    Offset(x, h - 3.dp.toPx()),
-                    strokeWidth = 1.5.dp.toPx(),
+                inkStroke(
+                    color,
+                    width = maxOf(size.height * 1.2f, size.width * anim),
+                    height = size.height,
+                    seed = 3,
+                    startThick = 1f,
+                    endThick = 0.8f,
                 )
             }
         }
