@@ -57,6 +57,7 @@ fun ExpensesScreen(trip: Trip, pad: PaddingValues, vm: TripViewModel, onSettings
         title = "Gastos",
         subtitle = "${trip.expenses.size} movimientos",
         pad = pad,
+        art = ArtKind.Waves,
         onAdd = { creating = true },
     ) {
         // Medidor

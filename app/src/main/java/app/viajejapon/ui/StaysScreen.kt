@@ -48,6 +48,7 @@ fun StaysScreen(trip: Trip, pad: PaddingValues, vm: TripViewModel) {
         title = "Estadía",
         subtitle = "${trip.stays.sumOf { nightsOf(it) }} noches en ${trip.stays.size} alojamientos",
         pad = pad,
+        art = ArtKind.House,
         onAdd = { creating = true },
     ) {
         if (trip.stays.isEmpty()) {

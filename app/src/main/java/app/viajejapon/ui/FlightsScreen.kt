@@ -38,6 +38,7 @@ fun FlightsScreen(trip: Trip, pad: PaddingValues, vm: TripViewModel) {
         title = "Vuelos",
         subtitle = "${trip.flights.size} registrados",
         pad = pad,
+        art = ArtKind.Birds,
         onAdd = { creating = true },
     ) {
         if (trip.flights.isEmpty()) {

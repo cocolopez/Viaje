@@ -70,6 +70,7 @@ fun ItineraryScreen(trip: Trip, pad: PaddingValues, vm: TripViewModel, onSetting
         title = "Itinerario",
         subtitle = if (days.isEmpty()) "Sin fechas" else "${days.size} días · ${trip.places.size} lugares",
         pad = pad,
+        art = ArtKind.Torii,
         onAdd = if (selected != null) ({ creating = true }) else null,
     ) {
         if (days.isEmpty() || selected == null) {

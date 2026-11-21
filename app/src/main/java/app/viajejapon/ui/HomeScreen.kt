@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -56,9 +57,17 @@ fun HomeScreen(trip: Trip, pad: PaddingValues, onSettings: () -> Unit, onGo: (In
         else -> { big = "完"; small = "viaje terminado" }
     }
 
+    Box(Modifier.fillMaxSize()) {
+    InkArt(
+        ArtKind.Pagoda,
+        Modifier
+            .align(Alignment.BottomCenter)
+            .padding(bottom = pad.calculateBottomPadding())
+            .fillMaxWidth()
+            .height(300.dp),
+    )
     Column(
         Modifier
-            .background(Washi)
             .verticalScroll(rememberScrollState())
             .padding(bottom = pad.calculateBottomPadding() + 24.dp),
     ) {
@@ -197,6 +206,7 @@ fun HomeScreen(trip: Trip, pad: PaddingValues, onSettings: () -> Unit, onGo: (In
                 }
             }
         }
+    }
     }
 }
 

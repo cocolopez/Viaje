@@ -206,6 +206,7 @@ fun ScreenFrame(
     subtitle: String?,
     pad: PaddingValues,
     onAdd: (() -> Unit)?,
+    art: ArtKind? = null,
     content: LazyListScope.() -> Unit,
 ) {
     Box(
@@ -223,6 +224,9 @@ fun ScreenFrame(
             }
             .padding(pad),
     ) {
+        if (art != null) {
+            InkArt(art, Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(300.dp))
+        }
         LazyColumn(
             Modifier.fillMaxSize(),
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
